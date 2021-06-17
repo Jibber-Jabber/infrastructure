@@ -55,6 +55,30 @@ services:
     volumes:
       - pgdata_post:/var/lib/postgresql/data
 
+  message_service:
+    container_name: message-service
+    image: docker.pkg.github.com/jibber-jabber/message-service/message-service-dev:latest
+    ports:
+      -8082:8080
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_HOST: message_postgres_db
+      DB_PORT: 5432
+
+  message_db:
+    container_name: message_postgres_db
+    image: postgres:12
+    ports:
+    - 5430:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata_message:/var/lib/postgresql/data
+
   nginx:
     container_name: nginx
     image: docker.pkg.github.com/jibber-jabber/frontend/frontend-dev:latest
@@ -78,4 +102,6 @@ volumes:
   pgdata_user:
     external: true
   pgdata_post:
+    external: true
+  pgdata_message:
     external: true
