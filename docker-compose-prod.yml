@@ -66,6 +66,8 @@ services:
       DB_NAME: postgres
       DB_HOST: message_postgres_db
       DB_PORT: 5432
+      AUTH_HOST: user-service
+      AUTH_PORT: 8080
 
   message_db:
     container_name: message_postgres_db
@@ -76,8 +78,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
-      AUTH_HOST: user-service
-      AUTH_PORT: 8080
     volumes:
       - pgdata_message:/var/lib/postgresql/data
 
