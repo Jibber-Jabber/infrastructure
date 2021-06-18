@@ -3,7 +3,7 @@ version: '3'
 services:
   user_service:
     container_name: user-service
-    image: docker.pkg.github.com/jibber-jabber/users-service/users-service-prod:latest
+    image: docker.pkg.github.com/jibber-jabber/users-service/users-service:latest
     ports:
       - 8080:8080
     environment:
@@ -19,7 +19,7 @@ services:
     container_name: users_postgres_db
     image: postgres:12
     ports:
-      - 5432:5432
+      - 5434:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -29,7 +29,7 @@ services:
 
   post_service:
     container_name: post-service
-    image: docker.pkg.github.com/jibber-jabber/posts-service/posts-service-prod:latest
+    image: docker.pkg.github.com/jibber-jabber/posts-service/posts-service:latest
     ports:
       - 8081:8081
     environment:
@@ -55,14 +55,56 @@ services:
     volumes:
       - pgdata_post:/var/lib/postgresql/data
 
-  frontend:
-    container_name: frontend
-    image: docker.pkg.github.com/jibber-jabber/frontend/frontend-prod:latest
+  message_service:
+    container_name: message-service
+    image: docker.pkg.github.com/jibber-jabber/message-service/message-service:latest
+    ports:
+      - 8082:8080
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_HOST: message_postgres_db
+      DB_PORT: 5432
+
+  message_db:
+    container_name: message_postgres_db
+    image: postgres:12
+    ports:
+      - 5430:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      AUTH_HOST: user-service
+      AUTH_PORT: 8080
+    volumes:
+      - pgdata_message:/var/lib/postgresql/data
+
+  nginx:
+    container_name: nginx
+    image: docker.pkg.github.com/jibber-jabber/frontend/frontend:latest
     ports:
       - 80:80
+      - 443:443
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    depends_on:
+      - user_service
+      - post_service
+      - message_service
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
 
 volumes:
   pgdata_user:
     external: true
   pgdata_post:
+    external: true
+  pgdata_message:
     external: true
